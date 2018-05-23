@@ -3,22 +3,23 @@ import face_recognition
 import cv2
 import os
 import datetime,time
-from PIL import ImageGrab
+
 
 
 video_capture=cv2.VideoCapture(0)
 
-
-def screenshots():
-    time=datetime.datetime.now()
-    img=ImageGrab.grab()
-    img.save("./unknown_pic/%s.png"%time)
 
 
 def main():
     known_DATA_DIR="./D3A"
     Student_id=[]
     faces_to_compare =[]
+    rollcall=[]
+    rollcall.append([])
+    rollcall.append([])
+    
+    
+    
     for filename in os.listdir(known_DATA_DIR):
         file=os.path.splitext(filename)[-1]
         if file==".png"or file==".jpg":
@@ -27,13 +28,17 @@ def main():
             main_file_name=os.path.splitext(filename)[0]
             Student_id.append(main_file_name)
             faces_to_compare.append(face_encoding)
+            rollcall[0].append(main_file_name)
+            rollcall[1].append(0)
+
+
     T=True
     face_locations = []
     face_encodings = []
     face_names = []
     process_this_frame = True
-    rollcall=[0]*len(Student_id)
-
+    rollcall[0].sort()
+    
 
     while T==True:
         a,frame=video_capture.read()
@@ -54,14 +59,12 @@ def main():
                     if match_true==True:
                         name =Student_id[count]
                         face_names.append(name)
-                    count=count+1
-        '''
-            count=0
-            for rollcall_num in rollcall:
-                if rollcall_num==1:
-                    print(Student_id[count])
-                count=count+1
-        '''
+                        rollcall_record_num=0
+                        for rollcall_record in rollcall[0]:
+                            if name==rollcall_record:
+                                rollcall[1][rollcall_record_num]=1
+                            rollcall_record_num+=1
+                    count+=1
 
 
 
@@ -83,8 +86,8 @@ def main():
 
         time=datetime.datetime.now()
         if time.second==30 or time.second==0:
-            added_screenshots=threading.Thread(target=screenshots)
-            added_screenshots.start()
+            cv2.imwrite("./unknown_pic/%s.png"%time, frame)
+
    
         if time.minute==38:
             T=False
@@ -94,6 +97,9 @@ def main():
 
     video_capture.release()
     cv2.destroyAllWindows()
+
+
+
 
 main()
 
